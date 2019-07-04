@@ -47,10 +47,6 @@ class QuickNav : public kaleidoscope::Plugin {
 
     enum Control_ : int8_t;
 
-    static inline bool keyIsControl(Key &key) {
-        return key.raw == Key_LeftControl.raw
-               || key.raw == Key_RightControl.raw;
-    }
     static inline Control_ mapped_control(Key &key);
     static inline void reset(void);
 };
