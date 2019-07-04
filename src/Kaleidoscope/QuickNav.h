@@ -29,13 +29,18 @@ class QuickNav : public kaleidoscope::Plugin {
     static void disable();
     static bool active();
 
-    // Event handlers. Delete what you don't need.
+    // Getters and setters
+    static uint16_t timeout();
+    static void setTimeout(uint16_t new_timeout);
+    static uint8_t tapThreshold();
+    static void setTapThreshold(uint8_t new_threshold);
+
     EventHandlerResult onKeyswitchEvent(Key &mapped_key, byte row, byte col,
                                         uint8_t key_state);
 
   private:
     static bool disabled_;
-    static uint8_t num_taps_;
+    static uint8_t tap_threshold_;
     static uint16_t timeout_;
     static uint32_t start_time_;
     static uint8_t control_taps_[];

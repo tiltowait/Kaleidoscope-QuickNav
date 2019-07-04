@@ -22,14 +22,14 @@ namespace plugin {
 
 // QuickNav
 
-// Member variables.
-bool QuickNav::disabled_              = false;
-uint16_t QuickNav::timeout_           = 200; // In ms.
-uint32_t QuickNav::start_time_        = 0; // In ms.
-uint8_t QuickNav::num_taps_           = 2;
-uint8_t QuickNav::control_taps_[] = {0, 0};
-
 enum QuickNav::Control_ : int8_t { NEITHER = -1, LEFT = 0, RIGHT = 1 };
+
+// Member variables.
+bool QuickNav::disabled_          = false;
+uint16_t QuickNav::timeout_       = 200; // In ms.
+uint8_t QuickNav::tap_threshold_  = 2;
+uint8_t QuickNav::control_taps_[] = {0, 0};
+uint32_t QuickNav::start_time_    = 0;
 
 // Basic plugin status functions.
 
@@ -48,11 +48,32 @@ bool QuickNav::active() {
   return !disabled_;
 }
 
+// Getters and setters
+
+// The timeout, in ms, for triggering the navigation action
+uint16_t QuickNav::timeout() {
+  return timeout_;
+}
+
+void QuickNav::setTimeout(uint16_t new_timeout) {
+  timeout_ = new_timeout;
+}
+
+// The number of taps needed to trigger the navigation action
+uint8_t QuickNav::tapThreshold() {
+  return tap_threshold_;
+}
+
+void QuickNav::setTapThreshold(uint8_t new_threshold) {
+  tap_threshold_ = new_threshold;
+}
+
+
 // Event handlers.
 
-// Run for every non-idle key, in each cycle the key isn't idle in. If a key
-// gets pressed, released, or is held, it is not considered idle, and this
-// event handler will run for it too.
+// Watch for taps of either control key. If the same control key is tapped
+// tap_threshold_ times within timeout_, then send either Cmd+[ or Cmd+], depending
+// on which control was tapped.
 EventHandlerResult QuickNav::onKeyswitchEvent(Key &mapped_key, byte row,
                                               byte col, uint8_t key_state) {
   if(disabled_) {
@@ -84,7 +105,7 @@ EventHandlerResult QuickNav::onKeyswitchEvent(Key &mapped_key, byte row,
 
     if(bracket != Key_NoKey) {
       control_taps_[control]++;
-      if(control_taps_[control] == num_taps_) {
+      if(control_taps_[control] == tap_threshold_) {
         hid::pressKey(LGUI(bracket));
         reset();
         return EventHandlerResult::EVENT_CONSUMED;
