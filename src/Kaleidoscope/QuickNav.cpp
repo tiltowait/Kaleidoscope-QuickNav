@@ -27,8 +27,9 @@ bool QuickNav::disabled_              = false;
 uint16_t QuickNav::timeout_           = 200; // In ms.
 uint32_t QuickNav::start_time_        = 0; // In ms.
 uint8_t QuickNav::num_taps_           = 2;
-uint8_t QuickNav::left_control_taps_  = 0;
-uint8_t QuickNav::right_control_taps_ = 0;
+uint8_t QuickNav::control_taps_[] = {0, 0};
+
+enum QuickNav::Control_ : int8_t { NEITHER = -1, LEFT = 0, RIGHT = 1 };
 
 // Basic plugin status functions.
 
@@ -64,38 +65,52 @@ EventHandlerResult QuickNav::onKeyswitchEvent(Key &mapped_key, byte row,
 
   if(keyToggledOff(key_state)) {
     start_time_ = Kaleidoscope.millisAtCycleStart();
-    return EventHandlerResult::OK;
   }
-  else if(keyWasPressed(key_state)) {
-    return EventHandlerResult::OK;
-  }
+  else if(keyToggledOn(key_state)) {
+    Control_ control = mappedControl(mapped_key);
+    Key bracket = Key_NoKey;
 
-  if(keyToggledOn(key_state) && keyIsControl(mapped_key)) {
-    if(mapped_key.raw == Key_LeftControl.raw) {
-      if(++left_control_taps_ == num_taps_) {
-        hid::pressKey(LGUI(Key_LeftBracket));
+    switch(control) {
+      case LEFT:
+        bracket = Key_LeftBracket;
+        break;
+      case RIGHT:
+        bracket = Key_RightBracket;
+        break;
+      case NEITHER:
+        reset();
+        break;
+    }
+
+    if(bracket != Key_NoKey) {
+      control_taps_[control]++;
+      if(control_taps_[control] == num_taps_) {
+        hid::pressKey(LGUI(bracket));
         reset();
         return EventHandlerResult::EVENT_CONSUMED;
       }
     }
-    else if(mapped_key.raw == Key_RightControl.raw) {
-      if(++right_control_taps_ == num_taps_) {
-        hid::pressKey(LGUI(Key_RightBracket));
-        reset();
-        return EventHandlerResult::EVENT_CONSUMED;
-      }
-    }
-  }
-  else { // Not a control key, so reset everything.
-    reset();
+
   }
   return EventHandlerResult::OK;
 }
 
+QuickNav::Control_ QuickNav::mappedControl(Key &key) {
+  if(key == Key_LeftControl) {
+    return LEFT;
+  }
+
+  if(key == Key_RightControl) {
+    return RIGHT;
+  }
+
+  return NEITHER;
+}
+
 void QuickNav::reset(void) {
-  left_control_taps_ = 0;
-  right_control_taps_ = 0;
-  start_time_ = 0;
+  control_taps_[LEFT]  = 0;
+  control_taps_[RIGHT] = 0;
+  start_time_          = 0;
 }
 
 }  // namespace plugin

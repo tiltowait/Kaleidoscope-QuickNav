@@ -38,13 +38,15 @@ class QuickNav : public kaleidoscope::Plugin {
     static uint8_t num_taps_;
     static uint16_t timeout_;
     static uint32_t start_time_;
-    static uint8_t left_control_taps_;
-    static uint8_t right_control_taps_;
+    static uint8_t control_taps_[];
+
+    enum Control_ : int8_t;
 
     static inline bool keyIsControl(Key &key) {
         return key.raw == Key_LeftControl.raw
                || key.raw == Key_RightControl.raw;
     }
+    static inline Control_ mappedControl(Key &key);
     static inline void reset(void);
 };
 
