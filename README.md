@@ -53,9 +53,3 @@ Returns the timeout, in milliseconds.
 ### `tap_threshold()`
 
 Returns the number of taps necessary before sending the browser navigation shortcut.
-
-## Known Issues
-
-If the user taps left control, then right, then left, in quick succession, browser back will be sent instead of left control (the same is true for the opposite). This is because `QuickNav` does not clear the opposite control key's `tap_count_` when one of the controls is tapped.
-
-Since this is a very, very minor bug that can only be triggered through deliberate action, fixing it is low priority.
