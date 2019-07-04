@@ -28,7 +28,7 @@ enum QuickNav::Control_ : int8_t { NEITHER = -1, LEFT = 0, RIGHT = 1 };
 bool QuickNav::disabled_          = false;
 uint16_t QuickNav::timeout_       = 200; // In ms.
 uint8_t QuickNav::tap_threshold_  = 2;
-uint8_t QuickNav::control_taps_[] = {0, 0};
+uint8_t QuickNav::tap_count_[] = {0, 0};
 uint32_t QuickNav::start_time_    = 0;
 
 // Basic plugin status functions.
@@ -55,16 +55,16 @@ uint16_t QuickNav::timeout() {
   return timeout_;
 }
 
-void QuickNav::setTimeout(uint16_t new_timeout) {
+void QuickNav::set_timeout(uint16_t new_timeout) {
   timeout_ = new_timeout;
 }
 
 // The number of taps needed to trigger the navigation action
-uint8_t QuickNav::tapThreshold() {
+uint8_t QuickNav::tap_threshold() {
   return tap_threshold_;
 }
 
-void QuickNav::setTapThreshold(uint8_t new_threshold) {
+void QuickNav::set_tap_threshold(uint8_t new_threshold) {
   tap_threshold_ = new_threshold;
 }
 
@@ -88,7 +88,7 @@ EventHandlerResult QuickNav::onKeyswitchEvent(Key &mapped_key, byte row,
     start_time_ = Kaleidoscope.millisAtCycleStart();
   }
   else if(keyToggledOn(key_state)) {
-    Control_ control = mappedControl(mapped_key);
+    Control_ control = mapped_control(mapped_key);
     Key bracket = Key_NoKey;
 
     switch(control) {
@@ -104,8 +104,8 @@ EventHandlerResult QuickNav::onKeyswitchEvent(Key &mapped_key, byte row,
     }
 
     if(bracket != Key_NoKey) {
-      control_taps_[control]++;
-      if(control_taps_[control] == tap_threshold_) {
+      tap_count_[control]++;
+      if(tap_count_[control] == tap_threshold_) {
         hid::pressKey(LGUI(bracket));
         reset();
         return EventHandlerResult::EVENT_CONSUMED;
@@ -116,7 +116,7 @@ EventHandlerResult QuickNav::onKeyswitchEvent(Key &mapped_key, byte row,
   return EventHandlerResult::OK;
 }
 
-QuickNav::Control_ QuickNav::mappedControl(Key &key) {
+QuickNav::Control_ QuickNav::mapped_control(Key &key) {
   if(key == Key_LeftControl) {
     return LEFT;
   }
@@ -129,8 +129,8 @@ QuickNav::Control_ QuickNav::mappedControl(Key &key) {
 }
 
 void QuickNav::reset(void) {
-  control_taps_[LEFT]  = 0;
-  control_taps_[RIGHT] = 0;
+  tap_count_[LEFT]  = 0;
+  tap_count_[RIGHT] = 0;
   start_time_          = 0;
 }
 

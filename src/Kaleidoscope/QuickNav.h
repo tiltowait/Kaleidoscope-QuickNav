@@ -31,9 +31,9 @@ class QuickNav : public kaleidoscope::Plugin {
 
     // Getters and setters
     static uint16_t timeout();
-    static void setTimeout(uint16_t new_timeout);
-    static uint8_t tapThreshold();
-    static void setTapThreshold(uint8_t new_threshold);
+    static void set_timeout(uint16_t new_timeout);
+    static uint8_t tap_threshold();
+    static void set_tap_threshold(uint8_t new_threshold);
 
     EventHandlerResult onKeyswitchEvent(Key &mapped_key, byte row, byte col,
                                         uint8_t key_state);
@@ -43,7 +43,7 @@ class QuickNav : public kaleidoscope::Plugin {
     static uint8_t tap_threshold_;
     static uint16_t timeout_;
     static uint32_t start_time_;
-    static uint8_t control_taps_[];
+    static uint8_t tap_count_[];
 
     enum Control_ : int8_t;
 
@@ -51,7 +51,7 @@ class QuickNav : public kaleidoscope::Plugin {
         return key.raw == Key_LeftControl.raw
                || key.raw == Key_RightControl.raw;
     }
-    static inline Control_ mappedControl(Key &key);
+    static inline Control_ mapped_control(Key &key);
     static inline void reset(void);
 };
 
