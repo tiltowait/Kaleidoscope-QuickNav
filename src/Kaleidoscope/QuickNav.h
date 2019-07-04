@@ -30,15 +30,22 @@ class QuickNav : public kaleidoscope::Plugin {
     static bool active();
 
     // Event handlers. Delete what you don't need.
-    EventHandlerResult onSetup();
-    EventHandlerResult beforeEachCycle();
     EventHandlerResult onKeyswitchEvent(Key &mapped_key, byte row, byte col,
                                         uint8_t key_state);
-    EventHandlerResult beforeReportingState();
-    EventHandlerResult afterEachCycle();
 
   private:
     static bool disabled_;
+    static uint8_t num_taps_;
+    static uint16_t timeout_;
+    static uint32_t start_time_;
+    static uint8_t left_control_taps_;
+    static uint8_t right_control_taps_;
+
+    static inline bool keyIsControl(Key &key) {
+        return key.raw == Key_LeftControl.raw
+               || key.raw == Key_RightControl.raw;
+    }
+    static inline void reset(void);
 };
 
 

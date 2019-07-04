@@ -23,7 +23,12 @@ namespace plugin {
 // QuickNav
 
 // Member variables.
-bool QuickNav::disabled_ = false;
+bool QuickNav::disabled_              = false;
+uint16_t QuickNav::timeout_           = 200; // In ms.
+uint32_t QuickNav::start_time_        = 0; // In ms.
+uint8_t QuickNav::num_taps_           = 2;
+uint8_t QuickNav::left_control_taps_  = 0;
+uint8_t QuickNav::right_control_taps_ = 0;
 
 // Basic plugin status functions.
 
@@ -44,21 +49,6 @@ bool QuickNav::active() {
 
 // Event handlers.
 
-// Runs once, when the plugin is initialized during Kaleidoscope.setup().
-EventHandlerResult QuickNav::onSetup() {
-  // Code goes here.
-  return EventHandlerResult::OK;
-}
-
-// Run as the first thing at the start of each cycle.
-EventHandlerResult QuickNav::beforeEachCycle() {
-  if(disabled_) {
-    return EventHandlerResult::OK;
-  }
-  // Code goes here.
-  return EventHandlerResult::OK;
-}
-
 // Run for every non-idle key, in each cycle the key isn't idle in. If a key
 // gets pressed, released, or is held, it is not considered idle, and this
 // event handler will run for it too.
@@ -67,27 +57,45 @@ EventHandlerResult QuickNav::onKeyswitchEvent(Key &mapped_key, byte row,
   if(disabled_) {
     return EventHandlerResult::OK;
   }
-  // Code goes here.
+
+  if(start_time_ != 0 && Kaleidoscope.hasTimeExpired(start_time_, timeout_)) {
+    reset();
+  }
+
+  if(keyToggledOff(key_state)) {
+    start_time_ = Kaleidoscope.millisAtCycleStart();
+    return EventHandlerResult::OK;
+  }
+  else if(keyWasPressed(key_state)) {
+    return EventHandlerResult::OK;
+  }
+
+  if(keyToggledOn(key_state) && keyIsControl(mapped_key)) {
+    if(mapped_key.raw == Key_LeftControl.raw) {
+      if(++left_control_taps_ == num_taps_) {
+        hid::pressKey(LGUI(Key_LeftBracket));
+        reset();
+        return EventHandlerResult::EVENT_CONSUMED;
+      }
+    }
+    else if(mapped_key.raw == Key_RightControl.raw) {
+      if(++right_control_taps_ == num_taps_) {
+        hid::pressKey(LGUI(Key_RightBracket));
+        reset();
+        return EventHandlerResult::EVENT_CONSUMED;
+      }
+    }
+  }
+  else { // Not a control key, so reset everything.
+    reset();
+  }
   return EventHandlerResult::OK;
 }
 
-// Runs each cycle right before sending the various reports (keys pressed, mouse
-// events, etc) to the host.
-EventHandlerResult QuickNav::beforeReportingState() {
-  if(disabled_) {
-    return EventHandlerResult::OK;
-  }
-  // Code goes here.
-  return EventHandlerResult::OK;
-}
-
-// Runs at the very end of each cycle.
-EventHandlerResult QuickNav::afterEachCycle() {
-  if(disabled_) {
-    return EventHandlerResult::OK;
-  }
-  // Code goes here.
-  return EventHandlerResult::OK;
+void QuickNav::reset(void) {
+  left_control_taps_ = 0;
+  right_control_taps_ = 0;
+  start_time_ = 0;
 }
 
 }  // namespace plugin
