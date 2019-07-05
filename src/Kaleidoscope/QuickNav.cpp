@@ -104,15 +104,20 @@ EventHandlerResult QuickNav::onKeyswitchEvent(Key &mapped_key, byte row,
   }
   else if(keyToggledOn(key_state)) {
     Control_ control = mapped_control(mapped_key);
-    Key bracket = Key_NoKey;
+    Key signal = Key_NoKey;
 
     switch(control) {
       case LEFT:
-        bracket = Key_LeftBracket;
+        // The Mac can also use Cmd+Left/Right, but there's a focus issue in
+        // Safari where this functionality breaks on Topsites, so we use the
+        // brackets instead.
+        os_mode_ == MAC ? signal = Key_LeftBracket
+                        : signal = Key_LeftArrow;
         tap_count_[RIGHT] = 0;
         break;
       case RIGHT:
-        bracket = Key_RightBracket;
+        os_mode_ == MAC ? signal = Key_RightBracket
+                        : signal = Key_RightArrow;
         tap_count_[LEFT] = 0;
         break;
       case NEITHER:
@@ -120,11 +125,11 @@ EventHandlerResult QuickNav::onKeyswitchEvent(Key &mapped_key, byte row,
         break;
     }
 
-    if(bracket != Key_NoKey) {
+    if(signal != Key_NoKey) {
       tap_count_[control]++;
       if(tap_count_[control] == tap_threshold_) {
-        os_mode_ == MAC ? hid::pressKey(LGUI(bracket))
-                        : hid::pressKey(LCTRL(bracket)); // Windows & Linux
+        os_mode_ == MAC ? hid::pressKey(LGUI(signal))
+                        : hid::pressKey(LALT(signal)); // Windows & Linux
         reset();
         return EventHandlerResult::EVENT_CONSUMED;
       }

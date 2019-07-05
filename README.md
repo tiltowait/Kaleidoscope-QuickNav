@@ -43,7 +43,7 @@ Alters the number of taps necessary before `QuickNav` sends the browser navigati
 
 ### Operating System Control
 
-Different operating systems use different keys for shortcut chords. Windows/Linux use `Control`, while macOS uses `Command`. The following methods allow the user to tell the plugin which OS is in use. By default, `QuickNav` is set to Windows mode.
+Different operating systems use different keys for shortcut chords. The following methods allow the user to tell the plugin which OS is in use. By default, `QuickNav` is set to Windows mode.
 
 #### `use_windows()`
 
