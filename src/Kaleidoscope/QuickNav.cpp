@@ -109,9 +109,11 @@ EventHandlerResult QuickNav::onKeyswitchEvent(Key &mapped_key, byte row,
     switch(control) {
       case LEFT:
         bracket = Key_LeftBracket;
+        tap_count_[RIGHT] = 0;
         break;
       case RIGHT:
         bracket = Key_RightBracket;
+        tap_count_[LEFT] = 0;
         break;
       case NEITHER:
         reset();
