@@ -22,16 +22,23 @@ namespace plugin {
 
 // QuickNav
 
-enum QuickNav::Control_ : int8_t { NEITHER = -1, LEFT = 0, RIGHT = 1 };
-enum QuickNav::OSMode : int8_t { WINDOWS, MAC, LINUX };
+// BACK/FORWARD are duplicates of LEFT/RIGHT for the sake of readability
+enum QuickNav::Control_ : int8_t { LEFT = 0, RIGHT = 1,
+                                   BACK = 0, FORWARD = 1,
+                                   NEITHER = -1 };
 
 // Member variables.
-bool QuickNav::disabled_            = false;
-QuickNav::OSMode QuickNav::os_mode_ = WINDOWS;
-uint16_t QuickNav::timeout_         = 200; // In ms.
-uint8_t QuickNav::tap_threshold_    = 2;
-uint8_t QuickNav::tap_count_[]      = {0, 0};
-uint32_t QuickNav::start_time_      = 0;
+bool QuickNav::disabled_         = false;
+uint16_t QuickNav::timeout_      = 200; // In ms.
+uint8_t QuickNav::tap_threshold_ = 2;
+uint8_t QuickNav::tap_count_[]   = {0, 0};
+uint32_t QuickNav::start_time_   = 0;
+
+Key QuickNav::shortcut_[] = { Key_NoKey, Key_NoKey };
+
+QuickNav::QuickNav() {
+  use_windows();
+}
 
 // Basic plugin status functions.
 
@@ -52,15 +59,21 @@ bool QuickNav::active() {
 
 // OS behavior
 void QuickNav::use_windows() {
-  os_mode_ = WINDOWS;
+  shortcut_[BACK]    = LALT(Key_LeftArrow);
+  shortcut_[FORWARD] = LALT(Key_RightArrow);
 }
 
+// The Mac can also use Cmd+Left/Right, but there's a focus issue in
+// Safari where this functionality breaks on Topsites, so we use the
+// brackets instead.
 void QuickNav::use_mac() {
-  os_mode_ = MAC;
+  shortcut_[BACK]    = LGUI(Key_LeftBracket);
+  shortcut_[FORWARD] = LGUI(Key_RightBracket);
 }
 
+// Linux uses the same shortcut scheme as Windows.
 void QuickNav::use_linux() {
-  os_mode_ = LINUX;
+  use_windows();
 }
 
 // Getters and setters
@@ -104,20 +117,12 @@ EventHandlerResult QuickNav::onKeyswitchEvent(Key &mapped_key, byte row,
   }
   else if(keyToggledOn(key_state)) {
     Control_ control = mapped_control(mapped_key);
-    Key signal = Key_NoKey;
 
     switch(control) {
       case LEFT:
-        // The Mac can also use Cmd+Left/Right, but there's a focus issue in
-        // Safari where this functionality breaks on Topsites, so we use the
-        // brackets instead.
-        os_mode_ == MAC ? signal = Key_LeftBracket
-                        : signal = Key_LeftArrow;
         tap_count_[RIGHT] = 0;
         break;
       case RIGHT:
-        os_mode_ == MAC ? signal = Key_RightBracket
-                        : signal = Key_RightArrow;
         tap_count_[LEFT] = 0;
         break;
       case NEITHER:
@@ -125,11 +130,10 @@ EventHandlerResult QuickNav::onKeyswitchEvent(Key &mapped_key, byte row,
         break;
     }
 
-    if(signal != Key_NoKey) {
+    if(control != NEITHER) {
       tap_count_[control]++;
       if(tap_count_[control] == tap_threshold_) {
-        os_mode_ == MAC ? hid::pressKey(LGUI(signal))
-                        : hid::pressKey(LALT(signal)); // Windows & Linux
+        hid::pressKey(shortcut_[control]);
         reset();
         return EventHandlerResult::EVENT_CONSUMED;
       }
@@ -154,7 +158,7 @@ QuickNav::Control_ QuickNav::mapped_control(Key &key) {
 void QuickNav::reset(void) {
   tap_count_[LEFT]  = 0;
   tap_count_[RIGHT] = 0;
-  start_time_          = 0;
+  start_time_       = 0;
 }
 
 }  // namespace plugin

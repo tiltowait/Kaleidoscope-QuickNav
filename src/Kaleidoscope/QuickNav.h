@@ -24,12 +24,13 @@ namespace plugin {
 
 class QuickNav : public kaleidoscope::Plugin {
   public:
+    QuickNav();
+
     // Basic plugin status functions.
     static void enable();
     static void disable();
     static bool active();
 
-    enum OSMode : int8_t;
 
     // OS behavior
     static void use_windows();
@@ -47,11 +48,12 @@ class QuickNav : public kaleidoscope::Plugin {
 
   private:
     static bool disabled_;
-    static OSMode os_mode_;
     static uint8_t tap_threshold_;
     static uint16_t timeout_;
     static uint32_t start_time_;
     static uint8_t tap_count_[];
+
+    static Key shortcut_[];
 
     enum Control_ : int8_t;
 
