@@ -29,6 +29,13 @@ class QuickNav : public kaleidoscope::Plugin {
     static void disable();
     static bool active();
 
+    enum OSMode : int8_t;
+
+    // OS behavior
+    static void use_windows();
+    static void use_mac();
+    static void use_linux();
+
     // Getters and setters
     static uint16_t timeout();
     static void set_timeout(uint16_t new_timeout);
@@ -40,6 +47,7 @@ class QuickNav : public kaleidoscope::Plugin {
 
   private:
     static bool disabled_;
+    static OSMode os_mode_;
     static uint8_t tap_threshold_;
     static uint16_t timeout_;
     static uint32_t start_time_;

@@ -23,13 +23,15 @@ namespace plugin {
 // QuickNav
 
 enum QuickNav::Control_ : int8_t { NEITHER = -1, LEFT = 0, RIGHT = 1 };
+enum QuickNav::OSMode : int8_t { WINDOWS, MAC, LINUX };
 
 // Member variables.
-bool QuickNav::disabled_          = false;
-uint16_t QuickNav::timeout_       = 200; // In ms.
-uint8_t QuickNav::tap_threshold_  = 2;
-uint8_t QuickNav::tap_count_[] = {0, 0};
-uint32_t QuickNav::start_time_    = 0;
+bool QuickNav::disabled_            = false;
+QuickNav::OSMode QuickNav::os_mode_ = WINDOWS;
+uint16_t QuickNav::timeout_         = 200; // In ms.
+uint8_t QuickNav::tap_threshold_    = 2;
+uint8_t QuickNav::tap_count_[]      = {0, 0};
+uint32_t QuickNav::start_time_      = 0;
 
 // Basic plugin status functions.
 
@@ -46,6 +48,19 @@ void QuickNav::disable() {
 // Returns true if the plugin is enabled.
 bool QuickNav::active() {
   return !disabled_;
+}
+
+// OS behavior
+void QuickNav::use_windows() {
+  os_mode_ = WINDOWS;
+}
+
+void QuickNav::use_mac() {
+  os_mode_ = MAC;
+}
+
+void QuickNav::use_linux() {
+  os_mode_ = LINUX;
 }
 
 // Getters and setters
@@ -106,7 +121,8 @@ EventHandlerResult QuickNav::onKeyswitchEvent(Key &mapped_key, byte row,
     if(bracket != Key_NoKey) {
       tap_count_[control]++;
       if(tap_count_[control] == tap_threshold_) {
-        hid::pressKey(LGUI(bracket));
+        os_mode_ == MAC ? hid::pressKey(LGUI(bracket))
+                        : hid::pressKey(LCTRL(bracket)); // Windows & Linux
         reset();
         return EventHandlerResult::EVENT_CONSUMED;
       }
